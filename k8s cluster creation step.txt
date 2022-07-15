@@ -1,0 +1,53 @@
+﻿1. create instance from snapshot.
+2. vi /etc/hosts to update the master ip.
+3. kubeadm reset
+4. kubeadm init \
+--apiserver-advertise-address=172.31.0.138 \
+--control-plane-endpoint=cluster-endpoint \
+--image-repository registry.cn-hangzhou.aliyuncs.com/lfy_k8s_images \
+--kubernetes-version v1.20.9 \
+--service-cidr=10.96.0.0/16 \
+--pod-network-cidr=192.168.0.0/16
+
+-------
+echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> /etc/profile
+source /etc/profile
+
+iptables -P FORWARD ACCEPT
+
+-----
+showmount -e 172.31.0.4
+
+#执行以下命令挂载 nfs 服务器上的共享目录到本机路径 /root/nfsmount
+mkdir -p /nfs/data
+
+mount -t nfs 172.31.0.4:/nfs/data /nfs/data
+# 写入一个测试文件
+echo "hello nfs server" > /nfs/data/test.txt
+
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of control-plane nodes by copying certificate authorities
+and service account keys on each node and then running the following as root:
+
+  kubeadm join cluster-endpoint:6443 --token 1jga0w.0u7ohmyrvefyuw5y \
+    --discovery-token-ca-cert-hash sha256:080b9be8f92202c3af230ab9de110340a5639543a7df1a431cb4ace9f61cb20a \
+    --control-plane
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join cluster-endpoint:6443 --token 1jga0w.0u7ohmyrvefyuw5y \
+    --discovery-token-ca-cert-hash sha256:080b9be8f92202c3af230ab9de110340a5639543a7df1a431cb4ace9f61cb20a
